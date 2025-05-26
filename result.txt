@@ -1,0 +1,12 @@
+# KERNEL: Time:                    0 | Balance:   0 | Error Signal: 0 | Current State: 0001
+# KERNEL: Time:                   25 | Balance:   0 | Error Signal: 0 | Current State: 0010
+# KERNEL: Time:                   35 | Balance: 100 | Error Signal: 0 | Current State: 0011
+# KERNEL: Time:                   45 | Balance: 100 | Error Signal: 0 | Current State: 0100
+# KERNEL: Time:                   55 | Balance: 100 | Error Signal: 1 | Current State: 0110
+# KERNEL: Time:                   65 | Balance: 100 | Error Signal: 1 | Current State: 0111
+# KERNEL: Time:                   75 | Balance:   0 | Error Signal: 0 | Current State: 0001
+# RUNTIME: Info: RUNTIME_0068 testbench.sv (85): $finish called.
+# KERNEL: Time: 130 ns,  Iteration: 0,  Instance: /atm_system_tb,  Process: @INITIAL#37_1@.
+# KERNEL: stopped at time: 130 ns
+# VSIM: Simulation has finished. There are no more test vectors to simulate.
+# VSIM: Simulation has finished.
