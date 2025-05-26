@@ -1,0 +1,143 @@
+// Code your design here
+module atm_system(
+    input clk,
+    input rst,
+    input card_input,
+    input [3:0] pin_input,
+    input [7:0] amount_input,
+    input withdrawal_request,
+    output reg [7:0] balance,
+    output reg error_signal,
+    output reg [3:0] current_state
+);
+
+    // State declarations
+    parameter Idle = 4'b0001;
+    parameter card_inserted = 4'b0010;
+    parameter pin_entry = 4'b0011;
+    parameter pin_correct = 4'b0100;
+    parameter balance_check = 4'b0101;
+    parameter withdraw = 4'b0110;
+    parameter error_state = 4'b0111;
+    parameter logout = 4'b1000;
+
+    // Internal registers
+    reg [3:0] current_state_reg;
+    reg [3:0] next_state;
+
+    reg [7:0] fixed_balance = 100; // Initial balance
+    reg [3:0] incorrect_attempts = 0; // Track incorrect pin attempts
+
+    // State transition logic
+    always @ (current_state_reg or card_input or pin_input or withdrawal_request or amount_input) begin
+        case (current_state_reg)
+            Idle: begin
+                if (card_input)
+                    next_state = card_inserted;
+                else
+                    next_state = Idle;
+            end
+            card_inserted: begin
+                next_state = pin_entry;
+            end
+            pin_entry: begin
+                if (pin_input == 4'b1010) // Correct pin is 1010
+                    next_state = pin_correct;
+                else if (incorrect_attempts >= 3)
+                    next_state = error_state;
+                else begin
+                    next_state = pin_entry;
+                    incorrect_attempts = incorrect_attempts + 1;
+                end
+            end
+            pin_correct: begin
+                if (withdrawal_request)
+                    next_state = withdraw;
+                else
+                    next_state = balance_check;
+            end
+            balance_check: begin
+                next_state = logout;
+            end
+            withdraw: begin
+                if (amount_input <= fixed_balance)
+                    next_state = balance_check;
+                else
+                    next_state = error_state;
+            end
+            error_state: begin
+                next_state = Idle;
+            end
+            logout: begin
+                next_state = Idle;
+            end
+            default: next_state = Idle;
+        endcase
+    end
+
+    // State register update (synchronous)
+    always @ (posedge clk or posedge rst) begin
+        if (rst) begin
+            current_state_reg <= Idle;
+            incorrect_attempts <= 0;
+            balance <= 8'b00000000;
+            error_signal <= 0;
+        end else begin
+            current_state_reg <= next_state;
+        end
+    end
+
+    // Output logic based on the current state
+    always @ (current_state_reg or fixed_balance or amount_input) begin
+        case (current_state_reg)
+            Idle: begin
+                balance = 8'b00000000;
+                error_signal = 0;
+            end
+            card_inserted: begin
+                balance = 8'b00000000;
+                error_signal = 0;
+            end
+            pin_entry: begin
+                balance = 100;
+                error_signal = 0;
+            end
+            pin_correct: begin
+                balance = 100;
+                error_signal = 0;
+            end
+            balance_check: begin
+                balance = fixed_balance;
+                error_signal = 0;
+            end
+            withdraw: begin
+                if (amount_input <= fixed_balance) begin
+                    fixed_balance = fixed_balance - amount_input;
+                    balance = fixed_balance;
+                    error_signal = 0;
+                end else begin
+                    balance = fixed_balance;
+                    error_signal = 1; // Insufficient balance
+                end
+            end
+            error_state: begin
+                balance = fixed_balance;
+                error_signal = 1; // Error condition
+            end
+            logout: begin
+                balance = 8'b00000000;
+                error_signal = 0;
+            end
+            default: begin
+                balance = 8'b00000000;
+                error_signal = 0;
+            end
+        endcase
+    end
+
+    // Update current_state directly without assign
+    always @ (current_state_reg) begin
+        current_state = current_state_reg;
+    end
+
+endmodule

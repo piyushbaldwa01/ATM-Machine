@@ -1,0 +1,94 @@
+// Code your testbench here
+// or browse Examples
+module atm_system_tb;
+
+    // Inputs
+    reg clk;
+    reg rst;
+    reg card_input;
+    reg [3:0] pin_input;
+    reg [7:0] amount_input;
+    reg withdrawal_request;
+
+    // Outputs
+    wire [7:0] balance;
+    wire error_signal;
+    wire [3:0] current_state;
+
+    // Instantiate the ATM system module
+    atm_system uut (
+        .clk(clk),
+        .rst(rst),
+        .card_input(card_input),
+        .pin_input(pin_input),
+        .amount_input(amount_input),
+        .withdrawal_request(withdrawal_request),
+        .balance(balance),
+        .error_signal(error_signal),
+        .current_state(current_state)
+    );
+
+    // Clock generation
+    always begin
+        #5 clk = ~clk; // Toggle clock every 5 time units
+    end
+
+    // Simple test vectors
+    initial begin
+        // Initialize Inputs
+        clk = 0;
+        rst = 0;
+        card_input = 0;
+        pin_input = 4'b0000; // Incorrect PIN
+        amount_input = 0;
+        withdrawal_request = 0;
+
+        // Apply reset
+        rst = 1;
+        #10; // Wait for some time
+        rst = 0;
+        #10;
+
+        // Test Vector 1: Successful Withdrawal (Withdraw 50)
+        // Step 1: Insert card
+        card_input = 1;
+        #10;
+        card_input = 0;
+        #10;
+
+        // Step 2: Enter correct PIN (4'b1010)
+        pin_input = 4'b1010; // Correct PIN
+        #10;
+
+        // Step 3: Withdraw 50
+        amount_input = 110;
+        withdrawal_request = 1;
+        #10;
+        withdrawal_request = 0;
+        #10;
+
+        // Step 4: Check balance after successful withdrawal
+        // Balance should now be 50
+
+        // Test Vector 2: Insufficient Funds (Withdraw 200, error should occur)
+        // Step 1: Try to withdraw 200 (insufficient funds)
+        amount_input = 50;
+        withdrawal_request = 1;
+        #10;
+        withdrawal_request = 0;
+        #10;
+
+        // Step 2: Check balance after unsuccessful withdrawal attempt
+        // Balance should remain 50, error_signal should be 1 (indicating insufficient funds)
+
+        // Finish simulation
+        #40 $finish;
+    end
+
+    // Monitor signals for debugging purposes
+    initial begin
+        $monitor("Time: %t | Balance: %d | Error Signal: %b | Current State: %b",
+                 $time, balance, error_signal, current_state);
+    end
+
+endmodule
